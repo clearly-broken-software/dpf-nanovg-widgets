@@ -24,4 +24,9 @@ bool NanoKnob::onMotion(const MotionEvent &ev)
     return KnobEventHandler::motionEvent(ev);
 }
 
+bool NanoKnob::onScroll(const ScrollEvent &ev)
+{
+    return KnobEventHandler::scrollEvent(ev);
+}
+
 END_NAMESPACE_DGL

@@ -19,6 +19,7 @@ public:
 protected:
     bool onMouse(const MouseEvent &ev) override;
     bool onMotion(const MotionEvent &ev) override;
+    bool onScroll(const ScrollEvent &ev) override;
 
 private:
     DISTRHO_LEAK_DETECTOR(NanoKnob)
