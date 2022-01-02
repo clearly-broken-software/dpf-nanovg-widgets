@@ -598,6 +598,9 @@ struct SpinnerEventHandler::PrivateData
 
     bool scrollEvent(const Widget::ScrollEvent &ev)
     {
+        if (!widget->contains(ev.pos))
+            return false;
+
         auto dir = ev.direction;
         switch (dir)
         {
@@ -623,7 +626,7 @@ struct SpinnerEventHandler::PrivateData
 
     bool setValue(const float value2, const bool sendCallback)
     {
-        value = value2;
+        value = clamp(value2, maximum, minimum);
         if (sendCallback && callback != nullptr)
         {
             try
