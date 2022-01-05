@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Widget.hpp"
+#include <vector>
 
 START_NAMESPACE_DGL
 
@@ -143,6 +144,67 @@ public:
     bool mouseEvent(const Widget::MouseEvent &ev);
     bool motionEvent(const Widget::MotionEvent &ev);
     bool scrollEvent(const Widget::ScrollEvent &ev);
+
+protected:
+    // State getState() const noexcept;
+
+private:
+    struct PrivateData;
+    PrivateData *const pData;
+
+    DISTRHO_LEAK_DETECTOR(SpinnerEventHandler)
+};
+// --------------------------------------------------------------------------------------------------------------------
+class RadioEventHandler
+{
+public:
+    class Callback
+    {
+    public:
+        virtual ~Callback() {}
+        virtual void radioValueChanged(SubWidget *widget, float value) = 0;
+    };
+
+    struct Option
+    {
+        const char *name;
+        float value;
+        Rectangle<double> hitbox;
+  
+        Option(const char *nm, float val)
+        {
+            name = nm;
+            value = val;
+        }
+    };
+
+    explicit RadioEventHandler(SubWidget *self);
+    explicit RadioEventHandler(SubWidget *self, const RadioEventHandler &other);
+    RadioEventHandler &operator=(const RadioEventHandler &other);
+    ~RadioEventHandler();
+
+    float getValue() const noexcept;
+
+    virtual bool setValue(float value, bool sendCallback = false) noexcept;
+
+    /*
+     * addOption also calculates the hitboxes
+    */
+    void addOption(const char *name, float value);
+
+    /* 
+     * call this after changing size 
+    */
+    void initHitboxes();
+
+    /*
+     * clear the vector !
+    */
+    void getHitboxes(std::vector<Rectangle<double>> &hitboxes);
+    void getOptions(std::vector<Option>&options);
+
+    void setCallback(Callback *callback) noexcept;
+    bool mouseEvent(const Widget::MouseEvent &ev);
 
 protected:
     // State getState() const noexcept;

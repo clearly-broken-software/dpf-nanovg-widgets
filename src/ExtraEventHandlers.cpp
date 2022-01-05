@@ -719,6 +719,190 @@ bool SpinnerEventHandler::scrollEvent(const Widget::ScrollEvent &ev)
     return pData->scrollEvent(ev);
     printf("scrollEvent \n");
 }
-// end slider
+// end spinner
+
+// begin radio
+
+struct RadioEventHandler::PrivateData
+{
+    RadioEventHandler *const self;
+    SubWidget *const widget;
+    RadioEventHandler::Callback *callback;
+
+    // struct Option
+    // {
+    //     const char *name;
+    //     float value;
+    //     Rectangle<double> hitbox;
+
+    //     Option(const char *nm, float val)
+    //     {
+    //         name = nm;
+    //         value = val;
+    //     }
+    // };
+
+    float minimum;
+    float maximum;
+    float value;
+    std::vector<Option> options;
+
+    PrivateData(RadioEventHandler *const s, SubWidget *const w)
+        : self(s),
+          widget(w),
+          callback(nullptr),
+          minimum(0.0f),
+          maximum(1.0f),
+          value(0.0f)
+    {
+    }
+
+    PrivateData(RadioEventHandler *const s, SubWidget *const w, PrivateData *const other)
+        : self(s),
+          widget(w),
+          callback(other->callback),
+          minimum(other->minimum),
+          maximum(other->maximum),
+          value(other->value)
+    {
+    }
+
+    void assignFrom(PrivateData *const other)
+    {
+        callback = other->callback;
+        minimum = other->minimum;
+        maximum = other->maximum;
+        value = other->value;
+    }
+
+    bool mouseEvent(const Widget::MouseEvent &ev)
+    {
+        if (ev.button != 1 || !ev.press || !widget->contains(ev.pos))
+            return false;
+
+        else
+        {
+            for (auto &hb : options)
+            {
+                if (hb.hitbox.contains(ev.pos))
+                {
+                    setValue(hb.value, true);
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    bool setValue(const float value2, const bool sendCallback)
+    {
+        value = clamp(value2, maximum, minimum);
+        if (sendCallback && callback != nullptr)
+        {
+            try
+            {
+                callback->radioValueChanged(widget, value);
+            }
+            DISTRHO_SAFE_EXCEPTION("RadioEventHandler::setValue");
+        }
+
+        return true;
+    }
+
+    void addOption(const char *name, float value)
+    {
+        options.emplace_back(Option(name, value));
+        initHitboxes();
+    }
+
+    void getOptions(std::vector<Option> &returnOptions)
+    {
+        returnOptions = options;
+    }
+
+    void getHitboxes(std::vector<Rectangle<double>> &hitboxes)
+    {
+        for (auto option : options)
+        {
+            hitboxes.push_back(option.hitbox);
+        }
+    }
+
+    void initHitboxes()
+    {
+        const int numOptions = options.size();
+        const double widgetHeight = widget->getHeight();
+        const double widgetWidth = widget->getWidth();
+        const double hitboxHeight = widgetHeight / static_cast<float>(numOptions);
+        const double hitboxWidth = widgetWidth;
+        double y = 0;
+        for (auto &hb : options)
+        {
+            hb.hitbox = Rectangle<double>(0, y, hitboxWidth, hitboxHeight);
+            y += hitboxHeight;
+        }
+    }
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+
+RadioEventHandler::RadioEventHandler(SubWidget *const self)
+    : pData(new PrivateData(this, self)) {}
+
+RadioEventHandler::RadioEventHandler(SubWidget *const self, const RadioEventHandler &other)
+    : pData(new PrivateData(this, self, other.pData)) {}
+
+RadioEventHandler &RadioEventHandler::operator=(const RadioEventHandler &other)
+{
+    pData->assignFrom(other.pData);
+    return *this;
+}
+
+RadioEventHandler::~RadioEventHandler()
+{
+    delete pData;
+}
+
+float RadioEventHandler::getValue() const noexcept
+{
+    return pData->value;
+}
+
+bool RadioEventHandler::setValue(const float value, const bool sendCallback) noexcept
+{
+    return pData->setValue(value, sendCallback);
+}
+
+void RadioEventHandler::addOption(const char *optName, float val)
+{
+    pData->addOption(optName, val);
+}
+
+void RadioEventHandler::getHitboxes(std::vector<Rectangle<double>> &hitboxes)
+{
+    pData->getHitboxes(hitboxes);
+}
+
+void RadioEventHandler::getOptions(std::vector<Option> &options)
+{
+    pData->getOptions(options);
+}
+
+void RadioEventHandler::initHitboxes()
+{
+    pData->initHitboxes();
+}
+
+void RadioEventHandler::setCallback(Callback *const callback) noexcept
+{
+    pData->callback = callback;
+}
+
+bool RadioEventHandler::mouseEvent(const Widget::MouseEvent &ev)
+{
+    return pData->mouseEvent(ev);
+}
+// end Radio
 
 END_NAMESPACE_DGL
