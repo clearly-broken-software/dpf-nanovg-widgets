@@ -20,9 +20,4 @@ bool NanoButton::onMouse(const MouseEvent& ev)
     return ButtonEventHandler::mouseEvent(ev);
 }
 
-bool NanoButton::onMotion(const MotionEvent& ev)
-{
-    return ButtonEventHandler::motionEvent(ev);
-}
-
 END_NAMESPACE_DGL
